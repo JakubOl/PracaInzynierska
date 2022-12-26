@@ -1,0 +1,414 @@
+﻿<script src="https://rawgit.com/moment/moment/2.2.1/min/moment.min.js"></script>
+<script>
+	let result = {};
+	let lastSensorsTime;
+	let allData = [];
+
+	let temperature = [];
+	let humidity = [];
+	let pm1_0 = [];
+	let pm2_5 = [];
+	let pm10_0 = [];
+	let tvoc = [];
+	let ozone = [];
+	let time = [];
+
+	async function getCurrentQuality() {
+		result = await fetch("/currentQuality")
+			.then(response => response.json())
+			.catch(err => {
+				console.log(err);
+				throw "Fetching Failed";
+			});
+		if (result === null) throw "Empty Database";
+		lastSensorsTime = moment(result.ReceivedAt);
+	}
+
+	async function loadUIMainPage() {
+		document.querySelector(".container").innerHTML = `<div class="current-info">
+																																												<div class="date-container glass">
+																																													<div class="content">
+																																														<div>
+																																															<div class="text-center">Ostatni pomiar:</div>
+																																															<div class="time text-center" id="time">${lastSensorsTime.format('h:mm')}<span id="am-pm">${lastSensorsTime.format('a')}</span></div>
+																																															<div class="place-container">
+																																																<div class="time-zone" id="name">Kraków</div>
+																																																<div id="country" class="country">19°56′E 50°04′N</div>
+																																															</div>
+																																															<div class="date" id="date">${lastSensorsTime.format('dddd, Do MMMM')}</div>
+																																														</div>
+																																													</div>
+
+																																													<div class="others" id="current-weather-items">
+																																														<h2>Pyły</h2>
+																																														<div class="list-item d-flex flex-column">
+																																															<div class="list-row">
+																																																<div>PM10</div>
+																																																<div class="values">
+																																																	<div>${parseInt(result.PM_10_0 * 100 / 45)}%</div>
+																																																	<div>${result.PM_10_0}<span id="unit">µg/m³</span></div>
+																																																	<i id="info1" class="fa fa-solid fa-circle-info"></i>
+																																																</div>
+																																															</div>
+																																															<div class="hidden info" id="info1text">
+																																																Norma WHO (dobowa): <b>45 µg/m³</b> <br /><br />
+																																																PM10 - zanieczyszczenia powietrza o średnicy do 10 mikrometrów.
+																																															</div>
+																																														</div>
+																																														<div class="list-item d-flex flex-column">
+																																															<div class="list-row">
+																																																<div>PM2.5</div>
+																																																<div class="values">
+																																																	<div>${parseInt(result.PM_10_0 * 100 / 15)}%</div>
+																																																	<div>${result.PM_2_5}<span id="unit">µg/m³</span></div>
+																																																	<i id="info2" class="fa fa-solid fa-circle-info"></i>
+																																																</div>
+																																															</div>
+																																															<div class="hidden info" id="info2text">
+																																																Norma dobowa WHO: <b>15 µg/m³</b> <br /><br />
+																																																PM2.5 - zanieczyszczenia powietrza o średnicy do 2,5
+																																																mikrometrów.
+																																															</div>
+																																														</div>
+																																														<div class="list-item d-flex flex-column">
+																																															<div class="list-row">
+																																																<div>PM1.0</div>
+																																																<div class="values">
+																																																	<div>${result.PM_1_0}<span id="unit">µg/m³</span></div>
+																																																	<i id="info3" class="fa fa-solid fa-circle-info"></i>
+																																																</div>
+																																															</div>
+																																															<div class="hidden info" id="info3text">
+																																																Norma dobowa WHO: niezdefiniowana <br /><br />
+																																																PM1.0 - zanieczyszczenia powietrza o średnicy do 1 mikrometrów.
+																																															</div>
+																																														</div>
+																																													</div>
+																																													<div class="others" id="current-weather-items">
+																																														<h2>Dane pogodowe</h2>
+																																														<div class="list-item d-flex flex-column">
+																																															<div class="list-row">
+																																																<div>Temperatura</div>
+																																																<div class="values">
+																																																	<div>${result.Temperature}<span id="unit">°C</span></div>
+																																																</div>
+																																															</div>
+																																														</div>
+																																														<div class="list-item d-flex flex-column">
+																																															<div class="list-row">
+																																																<div>Wilgotność</div>
+																																																<div class="values">
+																																																	<div>${result.Humidity}<span id="unit">%</span></div>
+																																																</div>
+																																															</div>
+																																														</div>
+																																													</div>
+																	<div class="others" id="current-weather-items">
+				<h2>Inne</h2>
+				<div class="list-item d-flex flex-column">
+				  <div class="list-row">
+					<div>Ozon</div>
+					<div class="values">
+					  <div>${result.Ozone}<span id="unit">µg/m³</span></div>
+					  <i id="info4" class="fa fa-solid fa-circle-info"></i>
+					</div>
+				  </div>
+				  <div class="hidden info" id="info4text">
+					Norma (ostatnie 8h) WHO: <b>100 µg/m³</b> <br /><br />
+					Ozon (O₃) to odmiana alotropowa tlenu. <br />Silnie toksyczny gaz
+					powstający w wyniku reakcji fotochemicznych w atmosferze.
+				  </div>
+				</div>
+				<div class="list-item d-flex flex-column">
+				  <div class="list-row">
+					<div>VOC</div>
+					<div class="values">
+					  <div>${result.TVOC}<span id="unit">µg/m³</span></div>
+					  <i id="info5" class="fa fa-solid fa-circle-info"></i>
+					</div>
+				  </div>
+				  <div class="hidden info" id="info5text">
+					Norma dobowa WHO: <b>0,2 -0,3 mg/m³</b> <br /><br />
+					VOC to lotne związki organiczne.<br /> Występowanie ich w powietrzu
+					powoduje szereg <br />negatywnych skutków dla środowiska i ludzi.
+					Należą do nich w głównej mierze węglowodory aromatyczne i
+					alifatyczne, alkohole, estry, terpeny, aldehydy i ketony.
+				  </div>
+				</div>
+			  </div>																												<div class="w-100 d-flex justify-content-center">
+																																														<button class="noselect" onclick="initChartsUI()">Wykresy</button>
+																																													</div>
+																																												</div>
+																																											</div>`
+	}
+
+	async function addEvents() {
+		const values = [
+			"#info1",
+			"#info2",
+			"#info3",
+			"#info4",
+			"#info5",
+		];
+		values.forEach((element) => {
+			document.querySelector(element).addEventListener("click", () => {
+				document.querySelector(`${element}text`).classList.toggle("hidden");
+			});
+		});
+	}
+
+	async function loadUICharts() {
+		document.querySelector(".container").innerHTML = `<div class="date-container glass"><div class="text-center">
+																																<h1 class="display-4 d-flex align-items-center justify-content-center"><button id="arrowBack" onclick="backToMainPage()"><i class="fa-solid fa-arrow-left"></i></button>Sensor Data</h1>
+																															</div>
+
+																															<div method="get" action="/sensorsData" class="input-group">
+																															  <input id="time" type="number" class="form-control rounded" placeholder="Hours" aria-label="Search" aria-describedby="search-addon" />
+																															  <button onclick="buttonClick()" class="btn btn-outline-success">Update</button>
+																															</div>
+
+																															<div class="chart-container d-flex flex-column mt-5" style="height: 60vh; overflow: auto;">
+																																<canvas id="pmChart" class="chart"></canvas>
+																																<canvas id="tempChart" class="chart"></canvas>
+																																<canvas id="humChart" class="chart"></canvas>
+																																<canvas id="ozoneChart" class="chart"></canvas>
+																																<canvas id="vocChart" class="chart"></canvas>
+																															</div></div>`;
+	}
+
+	async function loadChartsData() {
+		const pmData = {
+			labels: time,
+			datasets: [
+				{
+					label: 'PM 1.0',
+					backgroundColor: 'yellow',
+					borderColor: 'yellow',
+					data: pm1_0,
+				}
+				, {
+					label: 'PM 2.5',
+					backgroundColor: 'blue',
+					borderColor: 'blue',
+					data: pm2_5,
+				}
+				, {
+					label: 'PM 10.0',
+					backgroundColor: 'orange',
+					borderColor: 'orange',
+					data: pm10_0,
+				}
+			]
+		};
+
+		const tempData = {
+			labels: time,
+			datasets: [
+				{
+					label: 'Temperatura',
+					backgroundColor: 'rgb(255, 99, 132)',
+					borderColor: 'rgb(255, 99, 132)',
+					data: temperature,
+				}
+			]
+		};
+
+		const humData = {
+			labels: time,
+			datasets: [
+				{
+					label: 'Wilgotność',
+					backgroundColor: 'green',
+					borderColor: 'green',
+					data: humidity,
+				}
+			]
+		};
+
+		const ozoneData = {
+			labels: time,
+			datasets: [
+				{
+					label: 'Ozon',
+					backgroundColor: 'cyan',
+					borderColor: 'cyan',
+					data: ozone,
+				}
+			]
+		};
+
+		const vocData = {
+			labels: time,
+			datasets: [
+				{
+					label: 'VOC',
+					backgroundColor: 'white',
+					borderColor: 'white',
+					data: tvoc,
+				}
+			]
+		};
+
+		const options = {
+			color: 'black',
+			scales: {
+				y: {
+					ticks: {
+						color: "black",
+						font: {
+							size: 14
+						},
+					}
+				},
+				x: {
+					ticks: {
+						color: "black",
+						font: {
+							size: 14
+						},
+					}
+				}
+			}
+		}
+
+		const configPM = {
+			type: 'line',
+			data: pmData,
+			options
+		};
+		const configT = {
+			type: 'line',
+			data: tempData,
+			options
+		};
+		const configH = {
+			type: 'line',
+			data: humData,
+			options
+		};
+		const configVOC = {
+			type: 'line',
+			data: vocData,
+			options
+		};
+
+		const configO = {
+			type: 'line',
+			data: ozoneData,
+			options
+		};
+
+		const pmChart = new Chart(
+			document.getElementById('pmChart'),
+			configPM
+		);
+		const tempChart = new Chart(
+			document.getElementById('tempChart'),
+			configT
+		);
+		const humChart = new Chart(
+			document.getElementById('humChart'),
+			configH
+		);
+		const ozoneChart = new Chart(
+			document.getElementById('ozoneChart'),
+			configO
+		);
+		const vocChart = new Chart(
+			document.getElementById('vocChart'),
+			configVOC
+		);
+	}
+
+	async function getAllQuality(timeSpan) {
+		const url = "/sensorsData?timeSpan=" + timeSpan;
+
+		allData = (await fetch(url)
+			.then(response => response.json())
+			.catch(err => {
+				console.log("Fetching Failed");
+				throw "Fetching Failed";
+			})).Result;
+		if (result === null) throw "Empty Database";
+	}
+
+	async function backToMainPage(){
+        await loadUIMainPage();
+        await addEvents();
+	}
+
+	async function mapData() {
+		temperature = [];
+		humidity = [];
+		pm1_0 = [];
+		pm2_5 = [];
+		pm10_0 = [];
+		tvoc = [];
+		ozone = [];
+		time = [];
+
+		allData.forEach(value => {
+			temperature.push(value.Temperature);
+			humidity.push(value.Humidity);
+			pm1_0.push(value.PM_1_0);
+			pm2_5.push(value.PM_2_5);
+			pm10_0.push(value.PM_10_0);
+			tvoc.push(value.TVOC);
+			ozone.push(value.Ozone);
+			time.push(moment(value.ReceivedAt).format('h'));
+		})
+	}
+	let page = 1;
+
+	function displayLoader() {
+		document.querySelector(".container").innerHTML = `<div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>`;
+	}
+
+	async function initMainUI() {
+		displayLoader();
+		await getCurrentQuality();
+		await loadUIMainPage();
+		await addEvents();
+		page = 1;
+	}
+
+	initMainUI();
+
+	let timeRange;
+
+	async function buttonClick() {
+		timeRange = document.querySelector("#time").value;
+		initChartsUI(timeRange);
+	}
+
+	async function initChartsUI(range) {
+		displayLoader();
+
+		let parsed = parseInt(range, 10);
+		if (isNaN(parsed)) { parsed = 48; }
+
+		await getAllQuality(parsed);
+		await loadUICharts();
+		await mapData();
+		await loadChartsData();
+
+		page = 2;
+	}
+
+	function updateUI() {
+		console.log(page);
+		if (page === 1) {
+			initMainUI();
+		} else {
+			initChartsUI(timeRange);
+		}
+	}
+
+	setInterval(updateUI, 1000 * 60 * 15);
+</script>
+
+
+<div class="container">
+</div>
+
+

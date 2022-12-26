@@ -1,0 +1,16 @@
+﻿@model Exception
+
+<link href="/css/errorStyle.css"
+	  rel="stylesheet" type="text/css" />
+
+
+
+<text id="text-s" class="error-text" y="106" style="color:#2b2b2b;"> Error </text>
+<div class="d-flex flex-column justify-content-center align-items-center">
+	<h1>Something went wrong</h1>
+	<h2>Go <a href="/">Home!</a></h2>
+	<h3>@Model.Message</h3>
+	<h4>@Model.StackTrace</h4>
+</div>
+
+
